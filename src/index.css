@@ -1,0 +1,49 @@
+/* CampusECS global styles */
+
+:root {
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  color: #f5f5f2;
+  background: #08090a;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: #08090a;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #08090a;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #e9ff12;
+  outline-offset: 3px;
+}
+
+::selection {
+  color: #08090a;
+  background: #e9ff12;
+}
