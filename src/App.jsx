@@ -35,6 +35,7 @@ const [editLoading, setEditLoading] = useState(false)
   const [customProducts, setCustomProducts] = useState([])
   const [dbProducts, setDbProducts] = useState([])
   const [form, setForm] = useState({ name: '', category: 'Components', price: '', condition: 'Good' })
+  const [selectedImage, setSelectedImage] = useState(null)
   const [notice, setNotice] = useState('')
   
   
@@ -191,6 +192,30 @@ async function addProduct(event) {
     setNotice('Please enter a valid item name and price.')
     return
   }
+  let imageUrl = ''
+
+if (selectedImage) {
+  const fileExt = selectedImage.name.split('.').pop()
+  const filePath = `${session.user.id}/${crypto.randomUUID()}.${fileExt}`
+
+  const { data: imageData, error: imageError } = await supabase
+    .storage
+    .from('product-images')
+    .upload(filePath, selectedImage, { upsert: false })
+
+  if (imageError) {
+    console.error('Image upload error:', imageError.message)
+    setNotice(`Image upload failed: ${imageError.message}`)
+    return
+  }
+
+  const { data: publicData } = supabase
+    .storage
+    .from('product-images')
+    .getPublicUrl(imageData.path)
+
+  imageUrl = publicData.publicUrl
+}
 
   const { data, error } = await supabase
     .from('products')
@@ -201,6 +226,7 @@ async function addProduct(event) {
   price,
   category: form.category,
   user_id: session.user.id,
+  image_url: imageUrl,
   
 },
     ])
@@ -222,7 +248,7 @@ async function addProduct(event) {
     icon: '🧰',
     seller: 'You',
     description: data.description || '',
-    image_url: '',
+   image_url: data.image_url || imageUrl,
   }
 
   setDbProducts((previous) => [newProduct, ...previous])
@@ -256,12 +282,67 @@ async function handleEditProduct(event) {
 
   setEditLoading(true)
 
+  
+ /* let imageUrl = ''
+
+if (selectedImage) {
+  const fileExt = selectedImage.name.split('.').pop()
+  const filePath = `${session.user.id}/${crypto.randomUUID()}.${fileExt}`
+
+  const { data: imageData, error: imageError } = await supabase
+    .storage
+    .from('product-images')
+    .upload(filePath, selectedImage, {
+      upsert: false,
+    })
+
+  if (imageError) {
+    console.error('Image upload error:', imageError.message)
+    setNotice(`Image upload failed: ${imageError.message}`)
+    return
+  }
+
+  const { data: publicData } = supabase
+    .storage
+    .from('product-images')
+    .getPublicUrl(imageData.path)
+
+  imageUrl = publicData.publicUrl
+}*/
+
+  let imageUrl = ''
+
+if (selectedImage) {
+  const fileExt = selectedImage.name.split('.').pop()
+  const filePath = `${session.user.id}/${crypto.randomUUID()}.${fileExt}`
+
+  const { data: imageData, error: imageError } = await supabase
+    .storage
+    .from('product-images')
+    .upload(filePath, selectedImage, {
+      upsert: false,
+    })
+
+  if (imageError) {
+    console.error('Image upload error:', imageError.message)
+    setNotice(`Image upload failed: ${imageError.message}`)
+    return
+  }
+
+  const { data: publicData } = supabase
+    .storage
+    .from('product-images')
+    .getPublicUrl(imageData.path)
+
+  imageUrl = publicData.publicUrl
+}
   const { data, error } = await supabase
     .from('products')
     .update({
       title: name,
       price,
       category: editCategory,
+      image_url: imageUrl,
     })
     .eq(
   'id',
@@ -591,7 +672,18 @@ async function handleDeleteProduct(product) {
               <article className="product-card" key={product.id}>
                 <div className="product-visual">
                   <span className="condition-tag">{product.condition}</span>
-                  <span className="product-emoji">{product.icon}</span>
+                  {product.image_url ? (
+  <img
+    className="product-image"
+    src={product.image_url}
+    alt={product.name}
+    onError={(event) => {
+      event.currentTarget.style.display = 'none'
+    }}
+  />
+) : (
+  <span className="product-emoji">{product.icon}</span>
+)}
                   <span className="visual-code">ECS / {String(product.id).padStart(3, '0')}</span>
                 </div>
                 <div className="product-info">
@@ -776,6 +868,17 @@ async function handleDeleteProduct(product) {
               <label>Category<select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })}><option>Boards</option><option>Sensors</option><option>Components</option></select></label>
               <label>Price in ₹<input required type="number" min="1" max="100000" step="1" value={form.price} onChange={(event) => setForm({ ...form, price: event.target.value })} placeholder="e.g. 250" /></label>
               <label>Condition<select value={form.condition} onChange={(event) => setForm({ ...form, condition: event.target.value })}><option>Good</option><option>Like New</option><option>Used</option></select></label>
+              <label>
+  Product Image
+  <input
+    type="file"
+    accept="image/png,image/jpeg,image/webp"
+    onChange={(event) => {
+      const file = event.target.files?.[0]
+      setSelectedImage(file || null)
+    }}
+  />
+</label>
               <button className="button button-primary form-submit" type="submit">Add demo listing ↗</button>
             </form>
           </div>
