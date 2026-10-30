@@ -192,7 +192,7 @@ async function addProduct(event) {
     setNotice('Please enter a valid item name and price.')
     return
   }
-  let imageUrl = ''
+ let imageUrl = editingProduct.image_url || ''
 
 if (selectedImage) {
   const fileExt = selectedImage.name.split('.').pop()
@@ -362,18 +362,19 @@ if (selectedImage) {
     return
   }
 
-  setDbProducts((previous) =>
-    previous.map((product) =>
-      String(product.id) === String(data.id)
-        ? {
-            ...product,
-            name: data.title,
-            price: Number(data.price),
-            category: data.category,
-          }
-        : product
-    )
+ setDbProducts((previous) =>
+  previous.map((product) =>
+    String(product.id) === `db-${data.id}`
+      ? {
+          ...product,
+          name: data.title,
+          price: Number(data.price),
+          category: data.category,
+          image_url: data.image_url || imageUrl,
+        }
+      : product
   )
+)
 
   setEditingProduct(null)
   setNotice('Listing updated successfully!')
@@ -567,31 +568,7 @@ async function handleDeleteProduct(product) {
             <div className="hero-actions">
               <a className="button button-primary" href="#marketplace">Explore components ↗</a>
               
-{session ? (
-  <>
-    <span className="nav-user">{session.user.email}</span>
-    <button
-      className="button button-outline nav-sell"
-      onClick={handleLogout}
-    >
-      Logout
-    </button>
-  </>
-) : (
-  <button
-    className="button button-outline nav-sell"
-    onClick={() => {
-      setAuthMode('login')
-      setNotice('')
-      setShowSellForm(false)
-      setAuthEmail('')
-      setAuthPassword('')
-      setAuthOpen(true)
-    }}
-  >
-    Login / Sign up
-  </button>
-)}
+
 
             </div>
             <div className="hero-note"><span>✳</span> Student-powered. Budget-friendly. Campus-focused.</div>
